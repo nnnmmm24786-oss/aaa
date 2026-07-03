@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MikroTik Advanced Console & Print Hub ⚡</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            --main-color: #38bdf8;
+            --light-color: #bae6fd;
+            --accent-glow: rgba(56, 189, 248, 0.35);
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(56, 189, 248, 0.2);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Cairo', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            margin: 0; 
+            padding: 0; 
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease; 
+        }
+        
+        body {
+            background: var(--bg-gradient);
+            color: #fff;
+            min-height: 100vh;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            overflow-x: hidden; 
+            position: relative; 
+            padding: 30px 15px;
+        }
+
+        .tech-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .floating-icon {
+            position: absolute; color: var(--main-color);
+            opacity: 0.25; font-size: var(--size); left: var(--left);
+            animation: floatUp var(--duration) linear infinite; bottom: -50px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: var(--opacity); }
+            90% { opacity: var(--opacity); }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+        
+        .glow-text {
+            background: linear-gradient(to left, var(--main-color), var(--light-color));
+            -webkit-background-clip: text; color: transparent;
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #0284c7, var(--main-color)); color: white;
+            border: none; padding: 14px 25px; border-radius: 50px;
+            font-size: 15px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 5px 15px var(--accent-glow); transition: 0.2s;
+            width: 100%; display: block; margin-top: 10px;
+        }
+        .btn-primary:active { transform: scale(0.96); }
+
+        #loginWrapper { 
+            width: 100%; 
+            max-width: 440px; 
+            text-align: center; 
+            z-index: 10; 
+            perspective: 1000px;
+        }
+        .login-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+            backdrop-filter: blur(25px); 
+            -webkit-backdrop-filter: blur(25px);
+            border: 2px solid rgba(56, 189, 248, 0.4); 
+            border-radius: 30px;
+            padding: 45px 30px; 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px var(--accent-glow);
+            transform: translateY(0);
+            animation: cardEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        input[type="password"], input[type="text"], input[type="number"], input[type="tel"], select {
+            width: 100%; padding: 14px 20px; border: 2px solid var(--border-color);
+            background: rgba(2, 6, 17, 0.7); border-radius: 50px; color: #fff;
+            text-align: center; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        input[type="password"] { font-size: 24px; letter-spacing: 5px; border-color: var(--main-color); margin-bottom: 15px; }
+
+        #mainContent { 
+            display: none; 
+            width: 100%; 
+            max-width: 1200px; 
+            z-index: 10; 
+            animation: fadeIn 0.6s ease-out; 
+        }
+        
+        .feature-card {
+            background: var(--card-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-color); border-radius: 22px;
+            padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+        }
+        .card-icon { font-size: 35px; margin-bottom: 8px; filter: drop-shadow(0 0 8px var(--accent-glow)); }
+        .card-title { font-size: 20px; font-weight: 900; margin-bottom: 15px; color: var(--light-color); text-align: center;}
+
+        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .full-width { grid-column: span 2; }
+        .input-block { display: flex; flex-direction: column; text-align: right; }
+        .input-block label { font-size: 11px; color: var(--light-color); margin-bottom: 5px; padding-right: 10px; font-weight: bold; }
+
+        .terminal-container {
+            background: rgba(2, 6, 17, 0.9); border: 1px solid var(--border-color); border-radius: 22px;
+            overflow: hidden; height: 100%; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .terminal-header {
+            background: rgba(255,255,255,0.02); padding: 12px 20px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .terminal-dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .red { background-color: #ff5f56; }
+        .yellow { background-color: #ffbd2e; }
+        .green { background-color: #27c93f; }
+
+        .terminal-body {
+            font-family: 'Fira Code', monospace; color: #4ade80; padding: 18px;
+            height: 380px; overflow-y: auto; font-size: 11px; white-space: pre-wrap;
+            direction: ltr; text-align: left; line-height: 1.6;
+        }
+
+        .net-toast {
+            position: fixed; top: -120px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 360px; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--main-color); border-radius: 15px;
+            padding: 15px; box-shadow: 0 10px 25px var(--accent-glow);
+            z-index: 999999; display: flex; align-items: center; gap: 10px; direction: rtl;
+            transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; opacity: 0;
+        }
+        .net-toast.show { top: 15px; opacity: 1; }
+        .toast-msg { font-size: 13px; color: #fff; font-weight: bold; }
+
+        .engineer-rights {
+            margin-top: 25px; font-size: 13px; color: #94a3b8; font-weight: bold;
+            letter-spacing: 0.5px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;
+        }
+
+        #printAreaSection { display: none; }
+        .cards-print-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; padding: 10px 0; }
+
+        .premium-ticket {
+            background: #ffffff; color: #1e293b; border-radius: 16px; padding: 16px;
+            position: relative; border: 1px dashed #cbd5e1; direction: rtl; overflow: hidden;
+        }
+        .premium-ticket::before, .premium-ticket::after {
+            content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; background-color: #ffffff; border-radius: 50%; border: 1px solid #cbd5e1; z-index: 5;
+        }
+        .premium-ticket::before { left: -8px; }
+        .premium-ticket::after { right: -8px; }
+
+        .ticket-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dotted #e2e8f0; padding-bottom: 8px; margin-bottom: 10px; }
+        .ticket-net-name { font-weight: 900; font-size: 14px; color: #0284c7; }
+        .ticket-price { background: #f0fdf4; color: #16a34a; font-weight: 900; font-size: 11px; padding: 2px 10px; border-radius: 20px; border: 1px solid #bbf7d0; }
+        
+        .ticket-body-info { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+        .ticket-row { display: flex; justify-content: space-between; font-size: 12px; }
+        .ticket-label { color: #64748b; font-weight: 700; }
+        .ticket-value { font-family: 'Fira Code', monospace; font-weight: 900; color: #0f172a; background: #f8fafc; padding: 1px 6px; border-radius: 4px; }
+        .ticket-footer { border-top: 1px dashed #e2e8f0; padding-top: 6px; display: flex; justify-content: space-between; font-size: 10px; color: #64748b; font-weight: bold; }
+
+        @media print {
+            html, body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; height: auto !important; }
+            #loginWrapper, .tech-bg, .feature-card, .terminal-container, .mb-4, #netToast, .btn-primary, h1, p, .card-icon, .card-title, #printControlPanel, .engineer-rights { display: none !important; }
+            #mainContent { display: block !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            #printAreaSection { display: block !important; visibility: visible !important; opacity: 1 !important; }
+            .cards-print-grid { display: grid !important; visibility: visible !important; }
+            .premium-ticket { box-shadow: none !important; border: 1px dashed #000000 !important; page-break-inside: avoid; background: #ffffff !important; color: #000000 !important; }
+            .ticket-value { background: none !important; border: 1px solid #cbd5e1 !important; color: #000000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tech-bg" id="techBg"></div>
+    <div id="netToast" class="net-toast"><div class="toast-msg" id="toastMessageText">---</div></div>
+
+    <div id="loginWrapper">
+        <div class="login-card">
+            <div style="font-size: 55px; margin-bottom: 12px; filter: drop-shadow(0 0 15px var(--accent-glow));">⚡</div>
+            <h1 class="glow-text" style="font-size: 26px; margin-bottom: 6px; font-weight: 900;">بوابة التحكم المشفرة</h1>
+            <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 25px;">اكتب كلمة المرور لفك تشفير لوحة إدارة الاسكريبتات والطباعة الفورية</p>
+            <input type="password" id="passwordInput" inputmode="numeric" placeholder="•••••••">
+            <button class="btn-primary" onclick="checkPassword()">تحقق والولوج للنظام 🚀</button>
+            <div class="engineer-rights">
+                🛠️ جميع الحقوق محفوظة للمهندس احمد <br>
+                <span style="color: var(--main-color); font-family: 'Fira Code', monospace; font-size: 14px;">01029500910</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainContent" class="container-fluid">
+        <div class="text-center mb-4">
+            <h1 class="glow-text" style="font-weight: 900; font-size: 2.2rem;">مُولد وطباعة كروت ميكروتيك الفاخرة ⚡</h1>
+            <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">نظام كروت ذكي فائق السرعة ومناسب للكميات الضخمة بدون تعليق المتصفح</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-5">
+                <div class="feature-card">
+                    <div class="text-center"><div class="card-icon">⚙️</div></div>
+                    <h2 class="card-title glow-text">غرفة التحكم والخصائص</h2>
+                    <div class="grid-inputs">
+                        <div class="input-block"><label>عدد الكروت</label><input type="number" id="cardCount" value="12"></div>
+                        <div class="input-block"><label>طول الكود</label><select id="codeLength"><option value="4">4 خانات</option><option value="5" selected>5 خانات</option><option value="6">6 خانات</option><option value="8">8 خانات</option></select></div>
+                        <div class="input-block full-width"><label>تكوين الكود ومحتواه</label><select id="codeCompose"><option value="mix" selected>حروف وأرقام (مختلط)</option><option value="num">أرقام فقط</option><option value="alpha">حروف فقط</option></select></div>
+                        <div class="input-block full-width"><label>نوع كرت الحساب</label><select id="cardType"><option value="same" selected>يوزر وباسورد متشابهين</option><option value="diff">يوزر وباسورد مختلفين</option><option value="userOnly">يوزر فقط</option></select></div>
+                        <div class="input-block full-width"><label>اسم البروفايل (Profile Target)</label><input type="text" id="profileName" value="default"></div>
+                        <div class="input-block"><label>اسم شبكتك (للطباعة)</label><input type="text" id="printNetName" value="Super Net"></div>
+                        <div class="input-block"><label>سعر الكرت البيعي</label><input type="text" id="printPrice" value="5 جنيه"></div>
+                        <div class="input-block"><label>الكوتا / حجم التحميل</label><input type="number" id="quotaValue" placeholder="تلقائي"></div>
+                        <div class="input-block"><label>الوحدة</label><select id="quotaUnit"><option value="GB">GB</option><option value="MB">MB</option></select></div>
+                        <div class="input-block full-width"><label>الصلاحية والوقت الزمني (Uptime)</label><input type="text" id="uptimeLimit" value="1d" placeholder="مثال: 1d"></div>
+                    </div>
+                    <button class="btn-primary" onclick="generateScript()">توليد الاسكريبت وتجهيز الكروت ⚡</button>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <div class="terminal-dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="downloadRscFile()" class="btn-primary" style="margin-top:0; padding: 5px 15px; font-size: 11px; width: auto; border-radius: 12px; background: linear-gradient(45deg, #10b981, #059669);">📥 تحميل (.rsc)</button>
+                            <button onclick="copyScript()" class="btn-primary" style="margin-top:0; padding: 5px 15px; font-size: 11px; width: auto; border-radius: 12px;">📋 نسخ السكربت</button>
+                        </div>
+                    </div>
+                    <div class="terminal-body" id="terminalOutput"># الاسكريبت المطور للموبايل سيظهر هنا...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4" id="printControlPanel">
+            <div class="col-12">
+                <div class="feature-card" style="background: rgba(255, 255, 255, 0.02); border-color: rgba(34, 197, 94, 0.3);">
+                    <div class="text-center"><div class="card-icon">🖨️</div></div>
+                    <h2 class="card-title glow-text" style="background: linear-gradient(to left, #22c55e, #86efac); -webkit-background-clip: text;">مركز طباعة وإرسال الكروت الذكي الفوري</h2>
+                    <button class="btn-primary" style="background: linear-gradient(45deg, #16a34a, #22c55e);" onclick="triggerPrint()">اطبع الكروت الملوّدة الآن أو احفظ كـ PDF 🖨️</button>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-color); text-align: center;">
+                        <label style="font-size: 13px; color: var(--light-color); font-weight: bold; display: block; margin-bottom: 8px;">🟢 إرسال الكروت الملوّدة تلقائياً إلى الواتساب (تحت بعضها):</label>
+                        <input type="tel" id="whatsappNumber" placeholder="201029500910" style="max-width: 400px; margin: 0 auto; display: block; margin-bottom: 10px;">
+                        <button class="btn-primary" onclick="sendCardsToWhatsApp()" style="background: linear-gradient(45deg, #25d366, #128c7e); max-width: 300px; margin: 0 auto;">إرسال الكروت إلى الواتساب 💬</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 20px; font-size: 13px; color: #64748b; font-weight: bold;">
+            🛠️ جميع الحقوق محفوظة للمهندس احمد | <span style="color: var(--main-color);">01029500910</span>
+        </div>
+
+        <div id="printAreaSection"><div class="cards-print-grid" id="cardsPrintGrid"></div></div>
+    </div>
+
+    <script>
+        const techBg = document.getElementById('techBg');
+        function createFloatingIcon() {
+            if(!techBg || techBg.style.display === 'none') return;
+            const icon = document.createElement('div'); icon.classList.add('floating-icon');
+            icon.innerText = ['⚡', '🌐', '📶'][Math.floor(Math.random() * 3)];
+            icon.style.setProperty('--left', Math.random() * 100 + 'vw');
+            icon.style.setProperty('--size', Math.random() * 15 + 12 + 'px');
+            icon.style.setProperty('--duration', Math.random() * 5 + 4 + 's');
+            icon.style.setProperty('--opacity', Math.random() * 0.3);
+            techBg.appendChild(icon);
+            setTimeout(() => { icon.remove(); }, 9000);
+        }
+        setInterval(createFloatingIcon, 500);
+
+        function showToast(message) {
+            const toast = document.getElementById('netToast');
+            document.getElementById('toastMessageText').innerText = message;
+            toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3500);
+        }
+
+        function checkPassword() {
+            if(document.getElementById('passwordInput').value === '5412354') {
+                document.getElementById('loginWrapper').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                showToast('🔓 أهلاً بك يا باشمهندس أحمد');
+            } else { showToast('❌ الباسورد خطأ!'); }
+        }
+
+        function makeCode(len, compose) {
+            let pool = compose === 'num' ? '23456789' : (compose === 'alpha' ? 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz' : 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789');
+            let res = ''; for (let i = 0; i < len; i++) res += pool.charAt(Math.floor(Math.random() * pool.length));
+            return res;
+        }
+
+        let whatsappMessageText = "";
+
+        function generateScript() {
+            const count = parseInt(document.getElementById('cardCount').value) || 0;
+            const length = parseInt(document.getElementById('codeLength').value);
+            const compose = document.getElementById('codeCompose').value;
+            const type = document.getElementById('cardType').value;
+            const profile = document.getElementById('profileName').value.trim() || 'default';
+            const quotaVal = parseFloat(document.getElementById('quotaValue').value);
+            const quotaUnit = document.getElementById('quotaUnit').value;
+            const uptime = document.getElementById('uptimeLimit').value.trim();
+            const netName = document.getElementById('printNetName').value.trim() || 'My Network';
+            const priceTag = document.getElementById('printPrice').value.trim() || 'مجانى';
+
+            if (count <= 0) { showToast('⚠️ إدخال عدد كروت صحيح!'); return; }
+
+            let quotaStr = ''; let quotaDisplay = 'تلقائي';
+            if (!isNaN(quotaVal) && quotaVal > 0) {
+                quotaStr = ` limit-bytes-total=${Math.round(quotaVal * (quotaUnit === 'GB' ? 1024*1024*1024 : 1024*1024))}`;
+                quotaDisplay = `${quotaVal} ${quotaUnit}`;
+            }
+            let uptimeStr = uptime ? ` limit-uptime=${uptime}` : '';
+            let uptimeDisplay = uptime ? uptime : 'مفتوح';
+
+            let output = [];
+            let cardsHtml = '';
+            
+            whatsappMessageText = `📶 *كروت ميكروتيك الجديدة* \n🌐 الشبكة: *${netName}*\n💰 السعر: *${priceTag}*\n⏱️ الوقت: *${uptimeDisplay}*\n📊 الكوتا: *${quotaDisplay}*\n=====================\n\n`;
+
+            // الحيلة الذكية: نضع سطر الـ execute لدمج الأوامر وضمان اللصق المباشر في الموبايل
+            output.push(`:execute script={`);
+
+            for (let i = 0; i < count; i++) {
+                let user = makeCode(length, compose);
+                let pass = type === 'same' ? user : (type === 'diff' ? makeCode(length, compose) : '');
+                
+                output.push(`  /ip hotspot user add name="${user}" password="${pass}" profile="${profile}"${quotaStr}${uptimeStr};`);
+
+                whatsappMessageText += `🎫 *كرت [ ${i+1} ]* \n👤 المستخدم: \`${user}\` \n${type !== 'userOnly' ? `🔑 الباسورد: \`${pass}\` \n` : ''}---------------------\n`;
+
+                cardsHtml += `<div class="premium-ticket"><div class="ticket-header"><span class="ticket-net-name">⚡ ${netName}</span><span class="ticket-price">💰 ${priceTag}</span></div><div class="ticket-body-info"><div class="ticket-row"><span class="ticket-label">المستخدم:</span><span class="ticket-value">${user}</span></div>${type !== 'userOnly' ? `<div class="ticket-row"><span class="ticket-label">الباسورد:</span><span class="ticket-value">${pass}</span></div>` : ''}</div><div class="ticket-footer"><span>⏱️ ${uptimeDisplay}</span><span>📊 ${quotaDisplay}</span></div></div>`;
+            }
+
+            output.push(`}`);
+            whatsappMessageText += `\n🛠️ تصميم المهندس احمد: 01029500910`;
+
+            document.getElementById('terminalOutput').textContent = output.join('\n');
+            document.getElementById('cardsPrintGrid').innerHTML = cardsHtml;
+            showToast(`⚙️ جاهز! انسخ الآن والصق في ترمنال الموبايل مباشرة بضغطة واحدة!`);
+        }
+
+        function triggerPrint() { window.print(); }
+
+        function sendCardsToWhatsApp() {
+            let num = document.getElementById('whatsappNumber').value.replace(/[^0-9]/g, "");
+            if(!num) { showToast('⚠️ اكتب الرقم!'); return; }
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(whatsappMessageText)}`, '_blank');
+        }
+
+        function downloadRscFile() {
+            const blob = new Blob([document.getElementById('terminalOutput').textContent], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'mikrotik_cards.rsc'; a.click();
+        }
+
+        function copyScript() {
+            navigator.clipboard.writeText(document.getElementById('terminalOutput').textContent).then(() => showToast('📲 تم النسخ! الصقه الآن بالترمنال مباشرة.'));
+        }
+    </script>
+</body>
+</html>
