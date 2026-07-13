@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikroTik Dashboard Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-wrapper">
+        <div class="login-background"></div>
+        <div class="login-content">
+            <div class="login-card glass-effect">
+                <div class="login-animation">
+                    <div class="matrix-fall"></div>
+                </div>
+                <div class="login-inner">
+                    <h1 class="login-title gold-text">MikroTik Pro</h1>
+                    <p class="login-subtitle">إدارة الكروت الذكية</p>
+                    
+                    <div class="password-input-wrapper">
+                        <input 
+                            type="password" 
+                            id="securityCode" 
+                            class="security-input" 
+                            placeholder="🔐"
+                            maxlength="7"
+                        >
+                        <div class="input-focus-border"></div>
+                    </div>
+                    
+                    <button class="login-submit-btn gold-gradient" onclick="authenticateLogin()">
+                        <span>دخول الآن</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                    
+                    <p id="loginError" class="error-message"></p>
+                </div>
+            </div>
+            <div class="login-footer-text">
+                <p>تطبيق MikroTik Dashboard Pro 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard-container" style="display:none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-effect">
+            <div class="sidebar-top">
+                <div class="logo-wrapper">
+                    <div class="logo-circle">📡</div>
+                    <h2 class="logo-text gold-text">MikroTik</h2>
+                </div>
+                <div class="sidebar-divider"></div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="generator" onclick="switchTab('generator')">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-label">المولد</span>
+                    <span class="tab-indicator"></span>
+                </button>
+                <button class="nav-tab" data-tab="terminal" onclick="switchTab('terminal')">
+                    <span class="tab-icon">💻</span>
+                    <span class="tab-label">الترمنال</span>
+                    <span class="tab-indicator"></span>
+                </button>
+                <button class="nav-tab" data-tab="print" onclick="switchTab('print')">
+                    <span class="tab-icon">🖨️</span>
+                    <span class="tab-label">الطباعة</span>
+                    <span class="tab-indicator"></span>
+                </button>
+                <button class="nav-tab" data-tab="whatsapp" onclick="switchTab('whatsapp')">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-label">واتساب</span>
+                    <span class="tab-indicator"></span>
+                </button>
+                <button class="nav-tab" data-tab="history" onclick="switchTab('history')">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-label">السجل</span>
+                    <span class="tab-indicator"></span>
+                </button>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <button class="logout-btn gold-border" onclick="handleLogout()">
+                    🚪 تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-area">
+            <!-- Header Bar -->
+            <header class="top-header glass-effect">
+                <div class="header-left">
+                    <h1 id="currentTabTitle" class="header-title">مولد الكروت الذكي</h1>
+                    <p id="currentTabDesc" class="header-desc">توليد وإدارة كروت الإنترنت</p>
+                </div>
+                <div class="header-right">
+                    <div class="stats-mini">
+                        <div class="mini-stat">
+                            <span class="mini-label">الكروت</span>
+                            <span class="mini-value" id="headerCardCount">0</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">الأرباح</span>
+                            <span class="mini-value gold-text" id="headerProfit">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tab Content Container -->
+            <div class="content-wrapper">
+                
+                <!-- Tab 1: Generator -->
+                <section id="generator" class="tab-content active">
+                    <div class="content-grid">
+                        <!-- Left Column: Form -->
+                        <div class="form-section glass-effect">
+                            <h2 class="section-title">⚙️ إعدادات التوليد</h2>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">عدد الكروت</label>
+                                    <input type="number" id="cardCount" class="form-input" value="10" min="1" max="10000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">طول الكود</label>
+                                    <input type="number" id="codeLength" class="form-input" value="12" min="8" max="32">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">البادئة</label>
+                                    <input type="text" id="prefix" class="form-input" value="NET-" maxlength="10">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">نوع الحساب</label>
+                                    <select id="accountType" class="form-input">
+                                        <option value="same">متشابهة</option>
+                                        <option value="different">مختلفة</option>
+                                        <option value="user-only">يوزر فقط</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">السرعة (GB)</label>
+                                    <input type="number" id="bandwidth" class="form-input" value="50" step="0.1" min="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الصلاحية (أيام)</label>
+                                    <input type="number" id="uptime" class="form-input" value="30" min="1" max="365">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">البروفايل</label>
+                                    <select id="profile" class="form-input">
+                                        <option value="default">افتراضي</option>
+                                        <option value="premium">بريميوم</option>
+                                        <option value="standard">عادي</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">قالب الطباعة</label>
+                                    <select id="printTemplate" class="form-input">
+                                        <option value="classic">كلاسيكي</option>
+                                        <option value="colored">ملون</option>
+                                        <option value="minimal">موفر</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-divider"></div>
+
+                            <h3 class="subsection-title">💰 التسعير والأرباح</h3>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">سعر البيع ($)</label>
+                                    <input type="number" id="sellingPrice" class="form-input" value="5" step="0.01" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">تكلفة الورق ($)</label>
+                                    <input type="number" id="paperCost" class="form-input" value="0.5" step="0.01" min="0">
+                                </div>
+                            </div>
+
+                            <!-- Validation Error Alert -->
+                            <div id="validationAlert" class="validation-alert" style="display:none;">
+                                <span class="alert-icon">⚠️</span>
+                                <span id="validationMessage"></span>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="form-actions">
+                                <button class="btn btn-primary gold-gradient" onclick="generateCards()">
+                                    ✨ توليد الكروت
+                                </button>
+                                <button class="btn btn-secondary gold-border" onclick="resetForm()">
+                                    🔄 إعادة تعيين
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Statistics -->
+                        <div class="stats-section">
+                            <div class="stat-card glass-effect premium">
+                                <div class="stat-icon">💵</div>
+                                <div class="stat-content">
+                                    <p class="stat-label">الأرباح الإجمالية</p>
+                                    <p class="stat-value gold-text" id="totalProfit">$0.00</p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card glass-effect special">
+                                <div class="stat-icon">📈</div>
+                                <div class="stat-content">
+                                    <p class="stat-label">صافي الربح</p>
+                                    <p class="stat-value gold-text" id="netProfit">$0.00</p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card glass-effect">
+                                <div class="stat-icon">📊</div>
+                                <div class="stat-content">
+                                    <p class="stat-label">إجمالي البيانات</p>
+                                    <p class="stat-value" id="totalBandwidth">0 GB</p>
+                                </div>
+                            </div>
+
+                            <div class="stat-card glass-effect">
+                                <div class="stat-icon">⚡</div>
+                                <div class="stat-content">
+                                    <p class="stat-label">حجم البايتات</p>
+                                    <p class="stat-value" id="bytesValue">0 B</p>
+                                </div>
+                            </div>
+
+                            <div class="advanced-info glass-effect">
+                                <h3>📋 معادلة الكوتا</h3>
+                                <div class="formula-box">
+                                    <p class="formula">
+                                        <span class="step">1. القيمة ÷ 1.25</span><br>
+                                        <span class="step">2. الناتج × 1024³</span><br>
+                                        <span class="step">3. = Bytes</span>
+                                    </p>
+                                </div>
+                                <p class="info-text">معادلة MikroTik الدقيقة لتحديد حدود البيانات</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 2: Terminal -->
+                <section id="terminal" class="tab-content">
+                    <div class="terminal-section glass-effect">
+                        <div class="terminal-frame">
+                            <div class="terminal-header">
+                                <div class="terminal-buttons">
+                                    <span class="btn-dot red"></span>
+                                    <span class="btn-dot yellow"></span>
+                                    <span class="btn-dot green"></span>
+                                </div>
+                                <p class="terminal-title">MikroTik Terminal v7.x</p>
+                            </div>
+                            <div id="terminalOutput" class="terminal-body">
+جاهز لاستقبال الأوامر...
+                            </div>
+                        </div>
+
+                        <div class="terminal-controls">
+                            <button class="btn btn-success gold-gradient" onclick="copyTerminalCode()">
+                                📋 نسخ الكود
+                            </button>
+                            <button class="btn btn-info gold-border" onclick="downloadRscFile()">
+                                💾 تحميل RSC
+                            </button>
+                            <button class="btn btn-warning" onclick="clearTerminal()">
+                                🗑️ مسح
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="maintenance-section glass-effect">
+                        <h3 class="section-subtitle">⚡ أوامر الصيانة السريعة</h3>
+                        <div class="maintenance-grid">
+                            <button class="maintenance-btn" onclick="injectCommand('cache-clean')">
+                                🧹 تنظيف الكاش
+                            </button>
+                            <button class="maintenance-btn" onclick="injectCommand('remove-expired')">
+                                🗑️ حذف المنتهي
+                            </button>
+                            <button class="maintenance-btn" onclick="injectCommand('stop-users')">
+                                🛑 إيقاف المشتركين
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 3: Print -->
+                <section id="print" class="tab-content">
+                    <div class="print-container">
+                        <div id="printPreview" class="print-preview glass-effect">
+                            <p class="empty-state">📄 لم يتم توليد كروت بعد</p>
+                        </div>
+                        <div class="print-actions">
+                            <button class="btn btn-primary gold-gradient" onclick="printCards()">
+                                🖨️ طباعة الآن
+                            </button>
+                            <button class="btn btn-secondary gold-border" onclick="savePDF()">
+                                📥 حفظ PDF
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 4: WhatsApp -->
+                <section id="whatsapp" class="tab-content">
+                    <div class="whatsapp-container glass-effect">
+                        <div class="whatsapp-form">
+                            <div class="form-group">
+                                <label class="form-label">رقم الواتساب</label>
+                                <div class="phone-input">
+                                    <span class="country-code">+966</span>
+                                    <input type="text" id="whatsappPhone" class="form-input" placeholder="501234567">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">الرسالة</label>
+                                <textarea id="whatsappMessage" class="form-textarea" readonly></textarea>
+                            </div>
+
+                            <div id="whatsappPreview" class="message-preview">
+                                <p class="preview-empty">💬 معاينة الرسالة</p>
+                            </div>
+
+                            <button class="btn btn-success gold-gradient" onclick="sendWhatsApp()" style="width:100%;margin-top:1rem;">
+                                ✉️ إرسال عبر الواتساب
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 5: History -->
+                <section id="history" class="tab-content">
+                    <div class="history-container">
+                        <div class="history-toolbar glass-effect">
+                            <input type="text" id="historySearch" class="form-input" placeholder="🔍 ابحث...">
+                            <button class="btn btn-secondary" onclick="exportHistory()">📥 تصدير</button>
+                            <button class="btn btn-warning" onclick="clearHistory()">🗑️ حذف</button>
+                        </div>
+                        <div id="historyTable" class="history-grid glass-effect">
+                            <p class="empty-state">📋 لا توجد سجلات بعد</p>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer" class="app-footer gold-border" style="display:none;">
+        <div class="footer-content">
+            <p>👨‍💼 م/ أحمد | 📱 01029500910</p>
+            <p>© 2026 MikroTik Dashboard Pro - جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
